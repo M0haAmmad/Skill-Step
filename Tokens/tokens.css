@@ -1,0 +1,284 @@
+/* Tokens Dashboard Specific Styling */
+
+body {
+    background-color: var(--bg-dark);
+}
+
+.tokens-dashboard {
+    max-width: 1200px;
+    margin: 50px auto;
+    padding: 0 20px;
+    min-height: calc(100vh - 150px);
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.glass-card {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.tokens-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 20px;
+}
+
+.tokens-header h1 {
+    font-size: 2.5rem;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.current-balance-card {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1));
+    border: 2px solid var(--accent-gold);
+    border-radius: 20px;
+    padding: 20px 40px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+}
+
+.current-balance-card h3 {
+    margin: 0;
+    color: var(--accent-gold);
+    font-size: 1.1rem;
+}
+
+.balance-amount {
+    font-size: 3rem;
+    font-weight: 900;
+    color: white;
+    margin-top: 10px;
+}
+
+.balance-amount i {
+    color: var(--accent-gold);
+}
+
+/* Calculator Segment */
+.calculator-section {
+    text-align: center;
+}
+
+.calc-flex {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin-top: 30px;
+}
+
+.calc-input {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+    width: 250px;
+}
+
+.calc-input label {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+}
+
+.calc-input input,
+.calc-input input.calc-result-input {
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid var(--primary);
+    border-radius: 12px;
+    color: white;
+    padding: 15px 25px;
+    font-size: 2rem;
+    font-weight: 800;
+    font-family: inherit;
+    width: 100%;
+    outline: none;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.calc-input input.calc-result-input {
+    border-color: #10b981;
+    color: #10b981;
+}
+
+.calc-input input:focus {
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+}
+
+.calc-input input.calc-result-input:focus {
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+}
+
+.calc-icon {
+    font-size: 2.5rem;
+    color: var(--text-muted);
+}
+
+/* Action Forms Flex */
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 40px;
+}
+
+.action-card h2 {
+    color: white;
+    margin-bottom: 10px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-top: 25px;
+}
+
+.form-group label {
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.form-group input,
+.form-group select {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    color: white;
+    padding: 15px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.3s;
+}
+
+/* Custom styling for sleek dropdown menus */
+.form-group select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%233b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+    background-repeat: no-repeat;
+    background-position: left 15px center;
+    /* arrow on the left side due to RTL */
+    padding-left: 50px;
+    cursor: pointer;
+}
+
+.form-group select option {
+    background-color: var(--bg-dark);
+    /* Ensure the option popup is dark */
+    color: var(--text-main);
+    padding: 10px;
+}
+
+.payment-details-box {
+    margin-top: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    padding: 15px;
+    border: 1px dashed var(--glass-border);
+    animation: fadeInForm 0.4s ease;
+}
+
+.payment-details-box input {
+    width: 100%;
+}
+
+@keyframes fadeInForm {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group select:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
+}
+
+.locked-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.85); /* Deep dark fade */
+    backdrop-filter: blur(8px);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.locked-overlay i {
+    font-size: 3rem; 
+    color: var(--accent-fire); 
+    margin-bottom: 15px;
+    filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.5));
+}
+
+.locked-overlay h3 {
+    color: var(--text-main);
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+}
+
+.locked-overlay p {
+    color: var(--text-muted);
+    font-size: 1rem;
+}
+
+.buy-btn {
+    width: 100%;
+    margin-top: 30px;
+    font-size: 1.3rem;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.buy-btn:hover {
+    background: linear-gradient(135deg, #d97706, #b45309);
+}
+
+.exchange-btn {
+    width: 100%;
+    margin-top: 30px;
+    font-size: 1.3rem;
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.exchange-btn:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+}
+
+@media (max-width: 600px) {
+    .action-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .calc-input {
+        width: 100%;
+    }
+}
