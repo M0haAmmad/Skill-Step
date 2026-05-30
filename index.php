@@ -5,7 +5,7 @@
     <title>Skill-Step</title>
     <script>
         // تحويل إجباري ومضمون عن طريق المتصفح مباشرة للرابط الشغال
-        window.location.href = "login/Login.php";
+        window.location.href = "Login/Login.php";
     </script>
 </head>
 <body>
