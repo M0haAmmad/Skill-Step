@@ -1,12 +1,15 @@
-FROM php:8.2-apache
+FROM php:8.2-apache-bullseye
 
-# تثبيت إضافات الداتابيز فقط بدون تفعيل موديولات Apache اللي بتعمل تعارض
+# تنظيف وتحديث الموديولات لمنع أي تعارض في الـ MPM
+RUN apt-get update && apt-get install -y \
+    && a2dismod mpm_event || true \
+    && a2enmod mpm_prefork || true
+
+# تثبيت إضافات الداتابيز
 RUN docker-php-ext-install mysqli pdo pdo_mysql
 
-# نسخ ملفات المشروع للمجلد الصحيح
+# نسخ الملفات وإعطاء الصلاحيات
 COPY . /var/www/html/
-
-# إعطاء الصلاحيات المناسبة للملفات
 RUN chmod -R 755 /var/www/html/
 
 EXPOSE 80
