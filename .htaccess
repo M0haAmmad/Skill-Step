@@ -1,3 +1,2 @@
 DirectoryIndex Login/Login.php
-
-LimitRequestBody 0
+FallbackResource /Login/Login.php
