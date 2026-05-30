@@ -1,5 +1,5 @@
 <?php
-// التحويل للمجلد بحروف صغيرة login بدلاً من Login
-header("Location: login/login.php");
+// التحويل للمسار الصحيح بدقة الحروف
+header("Location: login/Login.php");
 exit;
 ?>
