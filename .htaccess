@@ -1,2 +1,2 @@
-DirectoryIndex Login/Login.php
-FallbackResource /Login/Login.php
+DirectoryIndex Login.php login.php Login/Login.php login/login.php
+FallbackResource /Login.php
