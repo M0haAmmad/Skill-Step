@@ -4,4 +4,4 @@ RUN docker-php-ext-install mysqli pdo pdo_mysql
 COPY . /var/www/html/
 RUN chmod -R 755 /var/www/html/
 EXPOSE 80
-RUN echo "RedirectMatch ^/$ /login/Login.php" >> /etc/apache2/apache2.conf
+
