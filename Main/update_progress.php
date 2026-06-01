@@ -90,7 +90,9 @@ if (mysqli_stmt_execute($stmt)) {
             $c_title = mysqli_fetch_assoc($c_title_q)['title'];
             $notif_title = "Congratulations! You've earned a certificate";
             $notif_body = "You have successfully completed the course \"" . $c_title . "\" and earned your Certificate of Completion.";
-            mysqli_query($conn, "INSERT INTO notifications (user_id, title, body) VALUES ($student_id, '$notif_title', '$notif_body')");
+            $safe_notif_title = mysqli_real_escape_string($conn, $notif_title);
+            $safe_notif_body = mysqli_real_escape_string($conn, $notif_body);
+            mysqli_query($conn, "INSERT INTO notifications (user_id, title, body) VALUES ($student_id, '$safe_notif_title', '$safe_notif_body')");
             checkAndAwardAchievements($conn, $student_id, 'courses_completed');
         }
     }

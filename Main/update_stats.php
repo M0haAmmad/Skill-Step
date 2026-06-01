@@ -113,8 +113,8 @@ if ($row = mysqli_fetch_assoc($result)) {
                 if ($price > 0) {
                     $payment_id = 0;
                     if ($creator_id > 0) {
-                        // Record in payments table (student side) with 'held' status
-                        $ins_pay = "INSERT INTO payments (student_id, course_id, amount_tokens, status) VALUES (?, ?, ?, 'held')";
+                        // Record in payments table (student side) with 'pending' status
+                        $ins_pay = "INSERT INTO payments (student_id, course_id, amount_tokens, status) VALUES (?, ?, ?, 'pending')";
                         $stmt_pay = mysqli_prepare($conn, $ins_pay);
                         mysqli_stmt_bind_param($stmt_pay, "iii", $user_id, $course_id, $price);
                         mysqli_stmt_execute($stmt_pay);
@@ -159,6 +159,6 @@ if ($row = mysqli_fetch_assoc($result)) {
 
 } catch (Exception $e) {
     mysqli_rollback($conn);
-    echo json_encode(['success' => false, 'message' => 'Failed to process transaction']);
+    echo json_encode(['success' => false, 'message' => 'Failed to process transaction: ' . $e->getMessage()]);
 }
 ?>

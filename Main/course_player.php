@@ -635,13 +635,7 @@ if (!$has_certificate && $course_progress >= 100) {
                         }
                     });
 
-                    // حماية الـ Network URLs
-                    video.addEventListener('loadstart', function () {
-                        const sources = video.querySelectorAll('source');
-                        sources.forEach(source => {
-                            source.src = source.src + '&t=' + Date.now(); // Cache busting
-                        });
-                    });
+                    // حماية الـ Network URLs - تمت إزالتها لمنع حدوث التكرار اللا نهائي في التحميل وتوقف الفيديو
                 }
             });
 

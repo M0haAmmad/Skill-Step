@@ -64,12 +64,19 @@ function checkAndAwardAchievements($conn, $user_id, $type = null) {
                     if ($reward > 0) {
                         mysqli_query($conn, "UPDATE wallet SET token_balance = token_balance + $reward, lifetime_earned = lifetime_earned + $reward WHERE user_id = $user_id");
                         
+                        // Get updated balance
+                        $bal_res = mysqli_query($conn, "SELECT token_balance FROM wallet WHERE user_id = $user_id");
+                        $new_balance = 0;
+                        if ($bal_res && $bal_row = mysqli_fetch_assoc($bal_res)) {
+                            $new_balance = intval($bal_row['token_balance']);
+                        }
+                        
                         // Log in token ledger
                         $ins_ledger = "INSERT INTO token_ledger (user_id, action_type, amount, balance_after, reference_type, reference_id, description) 
-                                       VALUES (?, 'Achievement_Reward', ?, (SELECT token_balance FROM wallet WHERE user_id = ?), 'achievement', ?, ?)";
+                                       VALUES (?, 'Achievement_Reward', ?, ?, 'achievement', ?, ?)";
                         $desc_msg = "Achievement Unlock: " . $name;
                         $stmt_led = mysqli_prepare($conn, $ins_ledger);
-                        mysqli_stmt_bind_param($stmt_led, "iiiis", $user_id, $reward, $user_id, $ach_id, $desc_msg);
+                        mysqli_stmt_bind_param($stmt_led, "iiiis", $user_id, $reward, $new_balance, $ach_id, $desc_msg);
                         mysqli_stmt_execute($stmt_led);
                     }
                     

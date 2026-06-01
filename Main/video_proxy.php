@@ -1,4 +1,5 @@
 <?php
+session_cache_limiter('');
 session_start();
 require_once 'db_connection.php';
 require_once 'auth_check.php';
@@ -121,9 +122,18 @@ if (isset($_SERVER['HTTP_RANGE'])) {
     $length = $file_size;
 }
 
+// Enable browser caching for video buffering and seeking
+header("Cache-Control: public, max-age=2592000"); // 30 days
+header("Pragma: cache");
+
 header("Content-Type: $mime_type");
 header("Accept-Ranges: bytes");
 header("Content-Length: " . $length);
+
+// Clean all active output buffers to prevent PHP memory exhaustion and ensure immediate streaming
+while (ob_get_level()) {
+    ob_end_clean();
+}
 
 $file = @fopen($video_path, 'rb');
 if (!$file) {
