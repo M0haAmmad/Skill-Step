@@ -266,6 +266,24 @@ function openMentorProfile(mentorId) {
                 coursesHtml = '<p style="color: #94a3b8; font-size: 0.9rem;">No courses available at the moment.</p>';
             }
 
+            let achHtml = '';
+            if(mentor.achievements && mentor.achievements.length > 0) {
+                achHtml = `
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="color: white; font-size: 1.1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-trophy" style="color: var(--accent-gold);"></i> Mentor Badges
+                        </h3>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            ${mentor.achievements.map(a => `
+                                <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: var(--accent-gold); padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; cursor: help;" title="${a.description}">
+                                    <i class="fa-solid ${a.icon_path || 'fa-award'}"></i> ${a.name}
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
             content.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px;">
                     <img src="${picUrl}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); box-shadow: 0 0 15px rgba(59,130,246,0.5);" onerror="this.src='../images/avatar1.png'">
@@ -289,12 +307,14 @@ function openMentorProfile(mentorId) {
                         <div style="color: white; font-size: 1.5rem; font-weight: 800;">${mentor.uploaded_courses}</div>
                         <div style="color: #94a3b8; font-size: 0.8rem;">Published</div>
                     </div>
-                    <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); border-radius: 16px; padding: 15px; text-align: center;">
+                    <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 16px; padding: 15px; text-align: center;">
                         <i class="fa-solid fa-graduation-cap" style="color: #f59e0b; font-size: 1.5rem; margin-bottom: 5px;"></i>
                         <div style="color: white; font-size: 1.5rem; font-weight: 800;">${mentor.purchased_courses}</div>
                         <div style="color: #94a3b8; font-size: 0.8rem;">Purchased</div>
                     </div>
                 </div>
+                
+                ${achHtml}
                 
                 <div>
                     <h3 style="color: white; font-size: 1.1rem; margin-bottom: 15px;">Top Courses</h3>

@@ -132,7 +132,6 @@ function fakeSubmit(event, type) {
     }
 }
 
-// Toggle payment form visibility
 function togglePaymentForm() {
     const method = document.getElementById('paymentMethod').value;
     document.getElementById('visaDetails').style.display = 'none';

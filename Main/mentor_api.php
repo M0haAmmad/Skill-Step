@@ -59,6 +59,22 @@ while ($row = mysqli_fetch_assoc($res_top)) {
     $top_courses[] = $row;
 }
 
+// Fetch mentor's unlocked achievements
+$q_achievements = "
+    SELECT a.name, a.icon_path, a.description 
+    FROM user_achievements ua 
+    JOIN achievements a ON ua.achievement_id = a.achievement_id 
+    WHERE ua.user_id = ? AND a.is_active = 1 
+    ORDER BY ua.earned_at DESC";
+$stmt_ach = mysqli_prepare($conn, $q_achievements);
+mysqli_stmt_bind_param($stmt_ach, "i", $mentor_id);
+mysqli_stmt_execute($stmt_ach);
+$res_ach = mysqli_stmt_get_result($stmt_ach);
+$mentor_achievements = [];
+while ($row = mysqli_fetch_assoc($res_ach)) {
+    $mentor_achievements[] = $row;
+}
+
 echo json_encode([
     'success' => true,
     'data' => [
@@ -69,6 +85,7 @@ echo json_encode([
         'uploaded_courses' => $uploaded,
         'total_students' => $students,
         'purchased_courses' => $purchased,
-        'top_courses' => $top_courses
+        'top_courses' => $top_courses,
+        'achievements' => $mentor_achievements
     ]
 ]);

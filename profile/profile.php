@@ -3,8 +3,10 @@ session_start();
 require_once '../Main/db_connection.php';
 require_once '../Main/auth_check.php';
 require_once '../Main/level_helper.php';
+require_once '../Main/achievements_helper.php';
 checkUserSession($conn);
 $user_id = intval($_SESSION['user_id']);
+checkAndAwardAchievements($conn, $user_id);
 
 // Force Log Today's Login
 $today = date('Y-m-d');
@@ -262,6 +264,100 @@ while ($c = mysqli_fetch_assoc($my_courses_res)) {
                 </div>
             </section>
 
+            <!-- Achievements & Badges List -->
+            <section id="my-achievements-section" class="courses-section" style="margin-top: 40px;">
+                <h2><i class="fa-solid fa-trophy" style="color:#f59e0b;"></i> Achievements & Badges</h2>
+                <div class="unlocked-cards-scroller" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;">
+                    <?php
+                    // Fetch all active achievements
+                    $ach_q = mysqli_query($conn, "SELECT a.*, ua.earned_at 
+                                                  FROM achievements a 
+                                                  LEFT JOIN user_achievements ua ON a.achievement_id = ua.achievement_id AND ua.user_id = $user_id 
+                                                  WHERE a.is_active = 1 
+                                                  ORDER BY a.achievement_id ASC");
+                    if ($ach_q && mysqli_num_rows($ach_q) > 0) {
+                        while ($ach = mysqli_fetch_assoc($ach_q)) {
+                            $unlocked = !empty($ach['earned_at']);
+                            $icon = htmlspecialchars($ach['icon_path'] ?? 'fa-award');
+                            $name = htmlspecialchars($ach['name']);
+                            $desc = htmlspecialchars($ach['description']);
+                            $reward = intval($ach['token_reward']);
+                            $date = $unlocked ? date('Y/m/d H:i', strtotime($ach['earned_at'])) : '';
+                            
+                            // Let's calculate current progress for the progress bar
+                            $progress_pct = 0;
+                            $user_val = 0;
+                            $cond_type = $ach['condition_type'];
+                            $cond_val = intval($ach['condition_value']);
+                            
+                            switch ($cond_type) {
+                                case 'courses_completed':
+                                    $c_res = mysqli_query($conn, "SELECT COUNT(*) as cnt FROM certificates WHERE user_id = $user_id");
+                                    $user_val = $c_res ? mysqli_fetch_assoc($c_res)['cnt'] : 0;
+                                    break;
+                                case 'streak_days':
+                                    $user_val = $user['streak_days'] ?? 0;
+                                    break;
+                                case 'level_reached':
+                                    $user_val = $user['level'] ?? 1;
+                                    break;
+                                case 'courses_created':
+                                    $c_res = mysqli_query($conn, "SELECT COUNT(*) as cnt FROM courses WHERE creator_id = $user_id AND status = 'active'");
+                                    $user_val = $c_res ? mysqli_fetch_assoc($c_res)['cnt'] : 0;
+                                    break;
+                                case 'tokens_earned':
+                                    $user_val = $db_earnings; // lifetime_earned
+                                    break;
+                            }
+                            
+                            $progress_pct = ($cond_val > 0) ? min(100, round(($user_val / $cond_val) * 100)) : 100;
+                            
+                            if ($unlocked) {
+                                echo "
+                                <div class='mini-course-card' style='border: 1px solid var(--accent-gold); background: rgba(245, 158, 11, 0.05); text-align: left; display: flex; flex-direction: column; justify-content: space-between;'>
+                                    <div>
+                                        <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;'>
+                                            <i class='fa-solid {$icon}' style='font-size: 2.2rem; color: var(--accent-gold);'></i>
+                                            <span style='font-size: 0.75rem; background: var(--accent-gold); color: #0f172a; padding: 2px 8px; border-radius: 20px; font-weight: bold;'>UNLOCKED</span>
+                                        </div>
+                                        <h4 style='font-size: 1.15rem; margin-bottom: 5px; color: white;'>{$name}</h4>
+                                        <p style='font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 15px;'>{$desc}</p>
+                                    </div>
+                                    <div style='border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; margin-top: auto; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted);'>
+                                        <span>Earned: {$date}</span>
+                                        <span style='color: var(--accent-gold); font-weight: bold;'>+{$reward} Tokens</span>
+                                    </div>
+                                </div>";
+                            } else {
+                                echo "
+                                <div class='mini-course-card' style='opacity: 0.6; text-align: left; display: flex; flex-direction: column; justify-content: space-between;'>
+                                    <div>
+                                        <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;'>
+                                            <i class='fa-solid fa-lock' style='font-size: 2rem; color: var(--text-muted);'></i>
+                                            <span style='font-size: 0.75rem; background: rgba(255,255,255,0.1); color: var(--text-muted); padding: 2px 8px; border-radius: 20px;'>LOCKED</span>
+                                        </div>
+                                        <h4 style='font-size: 1.15rem; margin-bottom: 5px; color: var(--text-muted);'>{$name}</h4>
+                                        <p style='font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 15px;'>{$desc}</p>
+                                    </div>
+                                    <div style='margin-top: auto;'>
+                                        <div style='display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px;'>
+                                            <span>Progress: {$user_val} / {$cond_val}</span>
+                                            <span>+{$reward} Tokens</span>
+                                        </div>
+                                        <div style='width: 100%; height: 5px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden;'>
+                                            <div style='width: {$progress_pct}%; height: 100%; background: var(--text-muted);'></div>
+                                        </div>
+                                    </div>
+                                </div>";
+                            }
+                        }
+                    } else {
+                        echo "<p style='color:var(--text-muted); width:100%; text-align:center;'>No achievements available.</p>";
+                    }
+                    ?>
+                </div>
+            </section>
+
             <!-- Unlocked Courses -->
             <section id="unlocked-courses" class="courses-section">
                 <h2><i class="fa-solid fa-unlock-keyhole"></i> Unlocked Courses</h2>
@@ -508,6 +604,20 @@ while ($c = mysqli_fetch_assoc($my_courses_res)) {
 
     <script src="../Main/alert-system.js?v=<?php echo time(); ?>"></script>
     <script src="profile.js?v=<?php echo time(); ?>"></script>
+    <?php
+    if (!empty($_SESSION['newly_unlocked_achievements'])) {
+        foreach ($_SESSION['newly_unlocked_achievements'] as $ach_name) {
+            echo "<script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    if (typeof Alert !== 'undefined') {
+                        Alert.success('🏆 Achievement Unlocked: " . addslashes($ach_name) . "!');
+                    }
+                });
+            </script>";
+        }
+        unset($_SESSION['newly_unlocked_achievements']);
+    }
+    ?>
 </body>
 
 </html>

@@ -2,6 +2,7 @@
 session_start();
 require_once('db_connection.php');
 require_once('level_helper.php');
+require_once('achievements_helper.php');
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: ../Login/login.php');
@@ -9,6 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
+checkAndAwardAchievements($conn, $user_id);
 
 $query = "SELECT u.full_name, COALESCE(w.token_balance, 0) as token_balance, u.xp, u.level, u.streak_days, u.last_streak_date, u.last_login, u.profile_pic FROM users u LEFT JOIN wallet w ON u.user_id = w.user_id WHERE u.user_id = ?";
 $stmt = mysqli_prepare($conn, $query);
@@ -124,6 +126,7 @@ $total_unread = $unread_msg_count + $unread_notif_count;
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="alert-system.css?v=<?php echo time(); ?>">
 </head>
 
 <body>
@@ -538,7 +541,7 @@ $total_unread = $unread_msg_count + $unread_notif_count;
 
     <!-- Mentor Profile Modal -->
     <div class="modal-overlay" id="mentorProfileModal" style="display: none; align-items: center; justify-content: center; z-index: 10001;">
-        <div class="mentor-modal" style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.98)); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 30px; width: 90%; max-width: 500px; box-shadow: 0 30px 60px rgba(0,0,0,0.6); position: relative; transform: scale(0.9); opacity: 0; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+        <div class="mentor-modal" style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.98)); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 30px; width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; box-shadow: 0 30px 60px rgba(0,0,0,0.6); position: relative; transform: scale(0.9); opacity: 0; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
             <button onclick="closeMentorProfile()" style="position: absolute; top: 20px; left: 20px; background: rgba(255,255,255,0.05); border: none; color: #94a3b8; font-size: 1.5rem; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.color='white'; this.style.background='rgba(255,255,255,0.1)'">
                 <i class="fa-solid fa-xmark"></i>
             </button>
@@ -551,7 +554,22 @@ $total_unread = $unread_msg_count + $unread_notif_count;
             </div>
         </div>
     </div>
+    <script src="alert-system.js?v=<?php echo time(); ?>"></script>
     <script src="script.js?v=<?php echo time(); ?>"></script>
+    <?php
+    if (!empty($_SESSION['newly_unlocked_achievements'])) {
+        foreach ($_SESSION['newly_unlocked_achievements'] as $ach_name) {
+            echo "<script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    if (typeof Alert !== 'undefined') {
+                        Alert.success('🏆 Achievement Unlocked: " . addslashes($ach_name) . "!');
+                    }
+                });
+            </script>";
+        }
+        unset($_SESSION['newly_unlocked_achievements']);
+    }
+    ?>
 </body>
 
 </html>

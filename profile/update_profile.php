@@ -28,6 +28,7 @@ if (!isset($_SESSION['user_id'])) {
 
 require_once '../Main/db_connection.php';
 require_once '../Main/level_helper.php';
+require_once '../Main/achievements_helper.php';
 $user_id = intval($_SESSION['user_id']);
 
 $response = ['success' => false, 'message' => 'No action performed'];
@@ -209,6 +210,8 @@ else if (isset($req['action']) && $req['action'] === 'add_skill') {
                 }
             }
             
+            checkAndAwardAchievements($conn, $user_id, 'courses_created');
+            
             // Reward user for uploading course
             $response = [
                 'success' => true, 
@@ -231,7 +234,7 @@ else if (isset($req['action']) && $req['action'] === 'delete_skill') {
     $cres = mysqli_stmt_get_result($chst);
     $srow = mysqli_fetch_assoc($cres);
     
-    if($srow && ($srow['user_id'] == $user_id || strpos($_SESSION['roles'], 'admin') !== false)) {
+    if($srow && $srow['user_id'] == $user_id) {
         $vq = "SELECT video_path AS file_path FROM lessons WHERE course_id = ?";
 
         $vst = mysqli_prepare($conn, $vq);
@@ -286,7 +289,7 @@ else if (isset($req['action']) && $req['action'] === 'edit_skill') {
     mysqli_stmt_execute($chst);
     $srow = mysqli_fetch_assoc(mysqli_stmt_get_result($chst));
     
-    if($title && $srow && ($srow['user_id'] == $user_id || strpos($_SESSION['roles'], 'admin') !== false)) {
+    if($title && $srow && $srow['user_id'] == $user_id) {
         $skill_q = mysqli_query($conn, "SELECT skill_id FROM skills WHERE skill_name = '$cat' LIMIT 1");
         $skill_row = mysqli_fetch_assoc($skill_q);
         $db_skill_id = $skill_row ? $skill_row['skill_id'] : 1;
@@ -352,7 +355,7 @@ else if (isset($req['action']) && $req['action'] === 'delete_single_video') {
     mysqli_stmt_execute($chst);
     $srow = mysqli_fetch_assoc(mysqli_stmt_get_result($chst));
     
-    if($srow && ($srow['user_id'] == $user_id || strpos($_SESSION['roles'], 'admin') !== false)) {
+    if($srow && $srow['user_id'] == $user_id) {
         $vq = "SELECT video_path AS file_path FROM lessons WHERE lesson_id = ? AND course_id = ?";
         $vst = mysqli_prepare($conn, $vq);
         mysqli_stmt_bind_param($vst, "ii", $video_id, $skill_id);
@@ -386,7 +389,7 @@ else if (isset($req['action']) && $req['action'] === 'delete_question') {
     mysqli_stmt_execute($chk_stmt);
     $chk_row = mysqli_fetch_assoc(mysqli_stmt_get_result($chk_stmt));
     
-    if ($chk_row && ($chk_row['creator_id'] == $user_id || strpos($_SESSION['roles'], 'admin') !== false)) {
+    if ($chk_row && $chk_row['creator_id'] == $user_id) {
         // Delete choices first
         mysqli_query($conn, "DELETE FROM quiz_choices WHERE question_id = $question_id");
         // Delete question
@@ -406,7 +409,7 @@ else if (isset($req['action']) && $req['action'] === 'delete_choice') {
     mysqli_stmt_execute($chk_stmt);
     $chk_row = mysqli_fetch_assoc(mysqli_stmt_get_result($chk_stmt));
     
-    if ($chk_row && ($chk_row['creator_id'] == $user_id || strpos($_SESSION['roles'], 'admin') !== false)) {
+    if ($chk_row && $chk_row['creator_id'] == $user_id) {
         mysqli_query($conn, "DELETE FROM quiz_choices WHERE choice_id = $choice_id");
         $response = ['success' => true, 'message' => 'Choice deleted'];
     } else {
@@ -424,7 +427,7 @@ else if (isset($req['action']) && $req['action'] === 'update_correct_choice') {
     mysqli_stmt_execute($chk_stmt);
     $chk_row = mysqli_fetch_assoc(mysqli_stmt_get_result($chk_stmt));
     
-    if ($chk_row && ($chk_row['creator_id'] == $user_id || strpos($_SESSION['roles'], 'admin') !== false)) {
+    if ($chk_row && $chk_row['creator_id'] == $user_id) {
         // Reset all choices for this question
         mysqli_query($conn, "UPDATE quiz_choices SET is_correct = 0 WHERE question_id = $question_id");
         // Set the correct one
@@ -445,7 +448,7 @@ else if (isset($req['action']) && $req['action'] === 'save_quiz') {
     mysqli_stmt_execute($chk_stmt);
     $chk_row = mysqli_fetch_assoc(mysqli_stmt_get_result($chk_stmt));
     
-    if ($chk_row && ($chk_row['creator_id'] == $user_id || strpos($_SESSION['roles'], 'admin') !== false)) {
+    if ($chk_row && $chk_row['creator_id'] == $user_id) {
         // Delete existing questions and choices
         mysqli_query($conn, "DELETE FROM quiz_choices WHERE question_id IN (SELECT question_id FROM quiz_questions WHERE quiz_id = $quiz_id)");
         mysqli_query($conn, "DELETE FROM quiz_questions WHERE quiz_id = $quiz_id");
@@ -478,7 +481,7 @@ else if (isset($req['action']) && $req['action'] === 'add_quiz') {
     mysqli_stmt_execute($chst);
     $srow = mysqli_fetch_assoc(mysqli_stmt_get_result($chst));
     
-    if($srow && ($srow['user_id'] == $user_id || strpos($_SESSION['roles'], 'admin') !== false)) {
+    if($srow && $srow['user_id'] == $user_id) {
         // Check if quiz already exists
         $chk_q = mysqli_query($conn, "SELECT quiz_id FROM quizzes WHERE course_id = $course_id");
         if (mysqli_num_rows($chk_q) == 0) {
@@ -502,7 +505,7 @@ else if (isset($req['action']) && $req['action'] === 'delete_quiz') {
     mysqli_stmt_execute($chst);
     $srow = mysqli_fetch_assoc(mysqli_stmt_get_result($chst));
     
-    if($srow && ($srow['user_id'] == $user_id || strpos($_SESSION['roles'], 'admin') !== false)) {
+    if($srow && $srow['user_id'] == $user_id) {
         // Delete quiz data
         mysqli_query($conn, "DELETE FROM quiz_choices WHERE question_id IN (SELECT question_id FROM quiz_questions WHERE quiz_id IN (SELECT quiz_id FROM quizzes WHERE course_id = $course_id))");
         mysqli_query($conn, "DELETE FROM quiz_questions WHERE quiz_id IN (SELECT quiz_id FROM quizzes WHERE course_id = $course_id)");

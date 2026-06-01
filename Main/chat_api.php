@@ -154,6 +154,39 @@ elseif ($action === 'get_contacts') {
     
     echo json_encode(['success' => true, 'contacts' => $contacts]);
 }
+elseif ($action === 'edit_message') {
+    $message_id = intval($req['message_id'] ?? 0);
+    $new_body = trim($req['message'] ?? '');
+    
+    if ($message_id > 0 && !empty($new_body)) {
+        $q = "UPDATE messages SET body = ? WHERE Message_id = ? AND Sender_id = ?";
+        $st = mysqli_prepare($conn, $q);
+        mysqli_stmt_bind_param($st, "sii", $new_body, $message_id, $user_id);
+        if (mysqli_stmt_execute($st)) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'DB error']);
+        }
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Invalid data']);
+    }
+}
+elseif ($action === 'delete_message') {
+    $message_id = intval($req['message_id'] ?? 0);
+    
+    if ($message_id > 0) {
+        $q = "DELETE FROM messages WHERE Message_id = ? AND Sender_id = ?";
+        $st = mysqli_prepare($conn, $q);
+        mysqli_stmt_bind_param($st, "ii", $message_id, $user_id);
+        if (mysqli_stmt_execute($st)) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'DB error']);
+        }
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Invalid data']);
+    }
+}
 else {
     echo json_encode(['success' => false, 'message' => 'Unknown action']);
 }

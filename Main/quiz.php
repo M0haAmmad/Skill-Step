@@ -2,6 +2,7 @@
 session_start();
 require_once 'db_connection.php';
 require_once 'auth_check.php';
+require_once 'achievements_helper.php';
 
 $user = checkUserSession($conn);
 $user_id = $user['user_id'];
@@ -107,6 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_quiz'])) {
                     $stmt_cert = mysqli_prepare($conn, $ins_cert);
                     mysqli_stmt_bind_param($stmt_cert, "iis", $user_id, $course_id, $qr_token);
                     mysqli_stmt_execute($stmt_cert);
+                    checkAndAwardAchievements($conn, $user_id, 'courses_completed');
                 }
             }
 

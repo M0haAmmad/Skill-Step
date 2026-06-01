@@ -8,6 +8,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 require_once 'db_connection.php';
+require_once 'achievements_helper.php';
 
 $data = json_decode(file_get_contents('php://input'), true);
 
@@ -90,6 +91,7 @@ if (mysqli_stmt_execute($stmt)) {
             $notif_title = "Congratulations! You've earned a certificate";
             $notif_body = "You have successfully completed the course \"" . $c_title . "\" and earned your Certificate of Completion.";
             mysqli_query($conn, "INSERT INTO notifications (user_id, title, body) VALUES ($student_id, '$notif_title', '$notif_body')");
+            checkAndAwardAchievements($conn, $student_id, 'courses_completed');
         }
     }
 

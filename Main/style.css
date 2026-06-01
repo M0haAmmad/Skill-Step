@@ -898,3 +898,28 @@ select:focus {
         justify-content: flex-end;
     }
 }
+
+/* Mentor Modal scrollbar styling */
+.mentor-modal::-webkit-scrollbar {
+    width: 8px;
+}
+.mentor-modal::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 10px;
+}
+.mentor-modal::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transition: background 0.3s;
+}
+.mentor-modal::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+.mentor-modal {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) rgba(15, 23, 42, 0.6);
+}

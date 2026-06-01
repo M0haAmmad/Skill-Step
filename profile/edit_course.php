@@ -12,16 +12,9 @@ $course_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if ($course_id <= 0)
     die("Invalid Course ID");
 
-$q = "SELECT courses.*, courses.course_id AS skill_id, courses.price_tokens AS price, 100 AS xp, courses.creator_id AS user_id, (SELECT categories.name FROM categories JOIN skills ON skills.category_id = categories.category_id WHERE skills.skill_id = courses.skill_id LIMIT 1) AS category FROM courses WHERE course_id = ?";
-if (strpos($_SESSION['roles'], 'admin') === false) {
-    $q .= " AND creator_id = ?";
-}
+$q = "SELECT courses.*, courses.course_id AS skill_id, courses.price_tokens AS price, 100 AS xp, courses.creator_id AS user_id, (SELECT categories.name FROM categories JOIN skills ON skills.category_id = categories.category_id WHERE skills.skill_id = courses.skill_id LIMIT 1) AS category FROM courses WHERE course_id = ? AND creator_id = ?";
 $stmt = mysqli_prepare($conn, $q);
-if (strpos($_SESSION['roles'], 'admin') === false) {
-    mysqli_stmt_bind_param($stmt, "ii", $course_id, $user_id);
-} else {
-    mysqli_stmt_bind_param($stmt, "i", $course_id);
-}
+mysqli_stmt_bind_param($stmt, "ii", $course_id, $user_id);
 mysqli_stmt_execute($stmt);
 $res = mysqli_stmt_get_result($stmt);
 $course = mysqli_fetch_assoc($res);

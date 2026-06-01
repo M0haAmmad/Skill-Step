@@ -259,3 +259,96 @@
             .contacts-sidebar.open { transform: translateX(0); }
             /* Mobile toggler needed if implementing fully resposnive */
         }
+
+        /* Message Options Dropdown Menu */
+        .message.sent {
+            position: relative;
+            padding-right: 20px !important;
+            transition: padding-right 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .message.sent:hover {
+            padding-right: 46px !important;
+        }
+        .message-options {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%) scale(0.8);
+            opacity: 0;
+            display: inline-block;
+            z-index: 50;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .message.sent:hover .message-options {
+            opacity: 1;
+            transform: translateY(-50%) scale(1);
+        }
+        .options-btn {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            box-shadow: none !important;
+            color: rgba(255, 255, 255, 0.8) !important;
+            cursor: pointer;
+            width: 28px;
+            height: 28px;
+            border-radius: 50% !important;
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            padding: 0 !important;
+        }
+        .options-btn:hover {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.25) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+            transform: scale(1.05);
+        }
+        .message-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 32px;
+            background: rgba(30, 41, 59, 0.95) !important;
+            backdrop-filter: blur(16px) !important;
+            -webkit-backdrop-filter: blur(16px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border-radius: 14px !important;
+            z-index: 1000 !important;
+            min-width: 120px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4) !important;
+            overflow: hidden;
+            padding: 4px 0 !important;
+        }
+        .message-menu button {
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+            width: 100% !important;
+            text-align: left !important;
+            background: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: #e2e8f0 !important;
+            padding: 10px 16px !important;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.15s ease;
+            border-radius: 0 !important;
+            margin: 0 !important;
+        }
+        .message-menu button:hover {
+            background: rgba(255, 255, 255, 0.08) !important;
+            color: white !important;
+        }
+        .message-menu button.delete-btn {
+            color: #f43f5e !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+        }
+        .message-menu button.delete-btn:hover {
+            background: rgba(244, 63, 94, 0.15) !important;
+            color: #f43f5e !important;
+        }

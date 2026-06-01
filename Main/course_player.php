@@ -6,7 +6,9 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 require_once 'db_connection.php';
+require_once 'achievements_helper.php';
 $user_id = intval($_SESSION['user_id']);
+checkAndAwardAchievements($conn, $user_id);
 $course_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
 if ($course_id <= 0) {
@@ -26,6 +28,7 @@ if (!$course) {
 
 // Check access
 $is_owner = ($course['user_id'] == $user_id);
+$is_admin = (isset($_SESSION['roles']) && strpos($_SESSION['roles'], 'admin') !== false);
 $is_unlocked = false;
 
 $user_query = "SELECT u.profile_pic, w.token_balance FROM users u LEFT JOIN wallet w ON u.user_id = w.user_id WHERE u.user_id = $user_id";
@@ -42,7 +45,7 @@ if ($enroll_q && mysqli_num_rows($enroll_q) > 0) {
 $_is_free_course = (intval($course['price_tokens'] ?? 0) === 0);
 $can_preview = ($course['free_lessons_count'] > 0) || $_is_free_course;
 
-if (!$is_owner && !$is_unlocked && !$can_preview) {
+if (!$is_owner && !$is_admin && !$is_unlocked && !$can_preview) {
     header("Location: ../Main/index.php?msg=access_denied");
     exit();
 }
@@ -125,6 +128,7 @@ if (!$has_certificate && $course_progress >= 100) {
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="course_player.css">
+    <link rel="stylesheet" href="alert-system.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../Main/style.css?v=<?php echo time(); ?>">
 </head>
 
@@ -140,13 +144,13 @@ if (!$has_certificate && $course_progress >= 100) {
         </a>
     </nav>
 
-    <?php if ($is_owner): ?>
-        <!-- Owner Mode Banner -->
+    <?php if ($is_owner || $is_admin): ?>
+        <!-- Owner/Admin Mode Banner -->
         <div
             style="background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(251,191,36,0.05)); border-bottom: 1px solid rgba(245,158,11,0.3); padding: 10px 20px; display:flex; align-items:center; gap:12px; font-size:0.9rem;">
             <i class="fa-solid fa-shield-halved" style="color:#f59e0b; font-size:1.1rem;"></i>
-            <span style="color:#f59e0b; font-weight:600;">Creator Mode — </span>
-            <span style="color:var(--text-muted);">You are viewing this course as the owner. All lessons are unlocked. Students who haven't purchased will see locked lessons.</span>
+            <span style="color:#f59e0b; font-weight:600;"><?php echo $is_admin ? 'Admin Review Mode' : 'Creator Mode'; ?> — </span>
+            <span style="color:var(--text-muted);"><?php echo $is_admin ? 'You are viewing this course as an administrator. All lessons are unlocked for review.' : 'You are viewing this course as the owner. All lessons are unlocked. Students who haven\'t purchased will see locked lessons.'; ?></span>
         </div>
     <?php endif; ?>
 
@@ -157,7 +161,7 @@ if (!$has_certificate && $course_progress >= 100) {
                 <?php
                 $free_count = intval($course['free_lessons_count'] ?? 0);
                 $is_price_zero = (intval($course['price_tokens'] ?? 0) === 0);
-                $is_current_locked = (!$is_owner && !$is_unlocked && !$is_price_zero && $active_video_index >= $free_count);
+                $is_current_locked = (!$is_owner && !$is_admin && !$is_unlocked && !$is_price_zero && $active_video_index >= $free_count);
 
                 if ($current_video && !$is_current_locked): ?>
                     <video id="courseVideo" controls controlsList="nodownload" autoplay>
@@ -283,7 +287,7 @@ if (!$has_certificate && $course_progress >= 100) {
                     <?php foreach ($videos as $index => $vid):
                         $free_count = intval($course['free_lessons_count'] ?? 0);
                         $is_price_zero = (intval($course['price_tokens'] ?? 0) === 0);
-                        $is_locked_video = (!$is_owner && !$is_unlocked && !$is_price_zero && $index >= $free_count);
+                        $is_locked_video = (!$is_owner && !$is_admin && !$is_unlocked && !$is_price_zero && $index >= $free_count);
                         $href = $is_locked_video ? "javascript:void(0)" : "?id={$course_id}&v={$index}";
                         $onclick = $is_locked_video ? "onclick='openPlayerPurchaseModal(event, $index); return false;'" : "";
                         $aria_disabled = $is_locked_video ? 'aria-disabled="true" tabindex="-1"' : '';
@@ -318,7 +322,7 @@ if (!$has_certificate && $course_progress >= 100) {
 
                     <?php if ($has_valid_quiz || ($is_owner && $course['has_quiz'])): ?>
                         <?php
-                        $quiz_unlocked = ($is_owner || $course_progress >= 100);
+                        $quiz_unlocked = ($is_owner || $is_admin || $course_progress >= 100);
                         $quiz_href = $quiz_unlocked ? ($is_owner ? "../profile/edit_quiz.php?course_id={$course_id}" : "quiz.php?course_id={$course_id}") : "javascript:void(0)";
                         $quiz_onclick = !$quiz_unlocked ? "onclick=\"showToast('Complete all lessons first to unlock the quiz', 'error'); return false;\"" : "";
                         ?>
@@ -426,7 +430,7 @@ if (!$has_certificate && $course_progress >= 100) {
             const totalLessonsCount = <?php echo count($videos); ?>;
             const activeVideoIndex = <?php echo $active_video_index; ?>;
             const userIsUnlocked = <?php echo $is_unlocked ? 'true' : 'false'; ?>;
-            const userIsOwner = <?php echo $is_owner ? 'true' : 'false'; ?>;
+            const userIsOwner = <?php echo ($is_owner || $is_admin) ? 'true' : 'false'; ?>;
             const courseIsFree = <?php echo $_price_zero ? 'true' : 'false'; ?>;
             let purchaseRedirectIndex = null;
 
@@ -968,6 +972,21 @@ if (!$has_certificate && $course_progress >= 100) {
                 color: white;
             }
         </style>
+        <script src="alert-system.js?v=<?php echo time(); ?>"></script>
+        <?php
+        if (!empty($_SESSION['newly_unlocked_achievements'])) {
+            foreach ($_SESSION['newly_unlocked_achievements'] as $ach_name) {
+                echo "<script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        if (typeof Alert !== 'undefined') {
+                            Alert.success('🏆 Achievement Unlocked: " . addslashes($ach_name) . "!');
+                        }
+                    });
+                </script>";
+            }
+            unset($_SESSION['newly_unlocked_achievements']);
+        }
+        ?>
 </body>
 
 </html>

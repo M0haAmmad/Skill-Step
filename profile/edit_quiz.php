@@ -19,7 +19,7 @@ mysqli_stmt_bind_param($chst, "i", $course_id);
 mysqli_stmt_execute($chst);
 $course_row = mysqli_fetch_assoc(mysqli_stmt_get_result($chst));
 
-if (!$course_row || ($course_row['user_id'] != $user_id && strpos($_SESSION['roles'], 'admin') === false))
+if (!$course_row || $course_row['user_id'] != $user_id)
     die("Unauthorized access");
 
 // Get quiz

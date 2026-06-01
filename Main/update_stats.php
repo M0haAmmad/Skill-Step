@@ -27,6 +27,7 @@ $user_id = intval($_SESSION['user_id']);
 
 require_once 'db_connection.php';
 require_once 'level_helper.php';
+require_once 'achievements_helper.php';
 
 // Begin Transaction early for SELECT FOR UPDATE
 mysqli_begin_transaction($conn);
@@ -137,6 +138,7 @@ if ($row = mysqli_fetch_assoc($result)) {
             }
 
             mysqli_commit($conn);
+            checkAndAwardAchievements($conn, $user_id);
             
             echo json_encode([
                 'success' => true, 

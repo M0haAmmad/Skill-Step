@@ -331,9 +331,26 @@ $result = mysqli_query($conn, $query);
                         <tr>
                             <td>#<?php echo $row['course_id']; ?></td>
                             <td>
-                                <strong><?php echo htmlspecialchars($row['title']); ?></strong>
+                                <strong style="cursor: pointer; color: #60a5fa; transition: color 0.2s;"
+                                    onmouseover="this.style.color='#93c5fd'" onmouseout="this.style.color='#60a5fa'"
+                                    onclick="openCourseDetails(<?php echo $row['course_id']; ?>)"><?php echo htmlspecialchars($row['title']); ?></strong>
                             </td>
-                            <td><?php echo htmlspecialchars($row['creator_name']); ?></td>
+                            <td>
+                                <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                                    <span style="font-weight: 600; cursor: pointer; color: #a5b4fc; transition: color 0.2s;"
+                                        onmouseover="this.style.color='#c7d2fe'" onmouseout="this.style.color='#a5b4fc'"
+                                        onclick="window.location.href='../Main/chat.php?user_id=<?php echo $row['creator_id']; ?>'">
+                                        <?php echo htmlspecialchars($row['creator_name']); ?>
+                                    </span>
+                                    <a href="../Main/chat.php?user_id=<?php echo $row['creator_id']; ?>"
+                                        class="btn-action-small"
+                                        style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.75rem; padding: 4px 8px; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; font-weight: 600; transition: all 0.2s;"
+                                        onmouseover="this.style.background='#10b981'; this.style.color='white';"
+                                        onmouseout="this.style.background='rgba(16, 185, 129, 0.15)'; this.style.color='#34d399';">
+                                        <i class="fas fa-envelope"></i> Send Message
+                                    </a>
+                                </div>
+                            </td>
                             <td><?php echo $row['lesson_count']; ?></td>
                             <td><?php echo $row['price_tokens']; ?> 🪙</td>
                             <td>
@@ -379,11 +396,12 @@ $result = mysqli_query($conn, $query);
                                         value="">
                                 </form>
 
-                                <!-- Admin Edit Course (Opens edit_course.php but we must ensure it bypasses creator check if admin) -->
-                                <a href="../profile/edit_course.php?id=<?php echo $row['course_id']; ?>"
-                                    class="btn-action-small btn-edit">
-                                    <i class="fas fa-edit"></i> Edit
-                                </a>
+                                <!-- Admin View Course (Opens Details Modal) -->
+                                <button type="button" class="btn-action-small btn-edit"
+                                    style="background: rgba(99, 102, 241, 0.2); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.4);"
+                                    onclick="openCourseDetails(<?php echo $row['course_id']; ?>)">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
                             </td>
                         </tr>
                     <?php endwhile; ?>
@@ -391,6 +409,120 @@ $result = mysqli_query($conn, $query);
             </table>
         </div>
     </div>
+
+    <!-- Course Details Modal -->
+    <div class="modal-overlay" id="courseDetailsModal"
+        style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 10000; backdrop-filter: blur(8px);">
+        <div class="mentor-modal"
+            style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.98)); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 30px; width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; box-shadow: 0 30px 60px rgba(0,0,0,0.6); position: relative; transform: scale(0.9); opacity: 0; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); color: white; text-align: right;">
+            <button onclick="closeCourseDetails()"
+                style="position: absolute; top: 20px; left: 20px; background: rgba(255,255,255,0.05); border: none; color: #94a3b8; font-size: 1.5rem; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center;"
+                onmouseover="this.style.color='white'; this.style.background='rgba(255,255,255,0.1)'">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div id="courseModalContent" style="display: flex; flex-direction: column; gap: 20px;">
+                <div style="text-align: center; padding: 40px;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary);"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openCourseDetails(courseId) {
+            const modal = document.getElementById('courseDetailsModal');
+            const content = document.getElementById('courseModalContent');
+
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.querySelector('.mentor-modal').style.transform = 'scale(1)';
+                modal.querySelector('.mentor-modal').style.opacity = '1';
+            }, 10);
+
+            content.innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary);"></i>
+                </div>
+            `;
+
+            fetch('../Main/course_api.php?id=' + courseId)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) {
+                        content.innerHTML = `<p style="color: #f43f5e; text-align: center;">Error: ${data.message}</p>`;
+                        return;
+                    }
+
+                    const course = data.data;
+
+                    let lessonsHtml = '';
+                    if (course.lessons.length > 0) {
+                        lessonsHtml = course.lessons.map((l, index) => `
+                            <div style="background: rgba(255,255,255,0.05); padding: 12px 15px; border-radius: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 8px; direction: rtl; text-align: right;">
+                                <i class="fa-solid fa-circle-play" style="color: var(--primary); font-size: 1.1rem;"></i>
+                                <span style="flex: 1; color: white; font-weight: 600;">${index + 1}. ${l.title}</span>
+                            </div>
+                        `).join('');
+                    } else {
+                        lessonsHtml = '<p style="color: #94a3b8; font-size: 0.95rem; text-align: center;">لا توجد دروس مرفوعة بعد.</p>';
+                    }
+
+                    content.innerHTML = `
+                        <div style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; direction: rtl; text-align: right;">
+                            <h2 style="color: white; margin: 0 0 10px 0; font-size: 1.6rem;">${course.title}</h2>
+                            <div style="color: #94a3b8; font-size: 0.95rem; display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-user" style="color: var(--primary);"></i> Creator: ${course.creator_name}
+                                    <a href="../Main/chat.php?user_id=${course.creator_id}" 
+                                       style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.8rem; padding: 3px 8px; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; font-weight: 600; transition: all 0.2s;"
+                                       onmouseover="this.style.background='#10b981'; this.style.color='white';"
+                                       onmouseout="this.style.background='rgba(16, 185, 129, 0.15)'; this.style.color='#34d399';">
+                                        <i class="fas fa-envelope"></i> Send Message                                     </a>
+                                </span>
+                                <span><i class="fa-solid fa-folder" style="color: var(--primary);"></i> Category: ${course.category_name}</span>
+                                <span><i class="fa-solid fa-coins" style="color: var(--accent-gold);"></i> Price: ${course.price_tokens} tokens</span>
+                            </div>
+                        </div>
+                        
+                        <div style="direction: rtl; text-align: right;">
+                            <h3 style="color: white; font-size: 1.2rem; margin-bottom: 10px;"><i class="fa-solid fa-file-lines" style="color: var(--primary);"></i> Course Description:</h3>
+                            <p style="color: #e2e8f0; font-size: 1rem; line-height: 1.6; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">${course.description}</p>
+                        </div>
+                        
+                        <div style="direction: rtl; text-align: right;">
+                            <h3 style="color: white; font-size: 1.2rem; margin-bottom: 15px;"><i class="fa-solid fa-list" style="color: var(--primary);"></i> Lessons (${course.lessons.length}):</h3>
+                            <div style="max-height: 250px; overflow-y: auto; padding-left: 5px;">
+                                ${lessonsHtml}
+                            </div>
+                        </div>
+                    `;
+                })
+                .catch(err => {
+                    console.error(err);
+                    content.innerHTML = `<p style="color: #f43f5e; text-align: center;">Error loading course data.</p>`;
+                });
+        }
+
+        function closeCourseDetails() {
+            const modal = document.getElementById('courseDetailsModal');
+            if (modal) {
+                modal.querySelector('.mentor-modal').style.transform = 'scale(0.9)';
+                modal.querySelector('.mentor-modal').style.opacity = '0';
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+            }
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', (event) => {
+            const modal = document.getElementById('courseDetailsModal');
+            if (modal && modal.style.display === 'flex' && event.target === modal) {
+                closeCourseDetails();
+            }
+        });
+    </script>
 </body>
 
 </html>

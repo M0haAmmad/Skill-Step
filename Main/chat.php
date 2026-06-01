@@ -20,7 +20,7 @@ $new_chat_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
         rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="chat.css">
+    <link rel="stylesheet" href="chat.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../Main/style.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="alert-system.css?v=<?php echo time(); ?>">
 
@@ -196,10 +196,31 @@ $new_chat_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
                             const isSent = m.sender_id == CURRENT_USER_ID;
                             const div = document.createElement('div');
                             div.className = 'message ' + (isSent ? 'sent' : 'received');
+                            
+                            let optionsHtml = '';
+                            if (isSent) {
+                                optionsHtml = `
+                                    <div class="message-options">
+                                        <button onclick="toggleMessageMenu(event, ${m.id})" class="options-btn">
+                                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                                        </button>
+                                        <div id="menu_${m.id}" class="message-menu">
+                                            <button onclick="editMessage(${m.id})">
+                                                <i class="fa-solid fa-pen" style="color: var(--accent-blue); margin-right: 5px;"></i> Edit
+                                            </button>
+                                            <button onclick="deleteMessage(${m.id})" class="delete-btn">
+                                                <i class="fa-solid fa-trash" style="margin-right: 5px;"></i> Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                            
                             div.innerHTML = `
-                            ${m.message}
-                            <span class="message-time">${m.time}</span>
-                        `;
+                                <span class="message-text">${m.message}</span>
+                                <span class="message-time">${m.time}</span>
+                                ${optionsHtml}
+                            `;
                             cBox.appendChild(div);
                         });
 
@@ -267,6 +288,74 @@ $new_chat_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
                 })
                 .catch(err => console.error(err));
         }
+
+        function toggleMessageMenu(event, messageId) {
+            event.stopPropagation();
+            document.querySelectorAll('.message-menu').forEach(menu => {
+                if (menu.id !== `menu_${messageId}`) {
+                    menu.style.display = 'none';
+                }
+            });
+            
+            const menu = document.getElementById(`menu_${messageId}`);
+            if (menu.style.display === 'none' || menu.style.display === '') {
+                menu.style.display = 'block';
+            } else {
+                menu.style.display = 'none';
+            }
+        }
+
+        function editMessage(messageId) {
+            const menu = document.getElementById(`menu_${messageId}`);
+            if (!menu) return;
+            const msgBubble = menu.closest('.message');
+            const msgElement = msgBubble.querySelector('.message-text');
+            const currentText = msgElement.innerText;
+            const newText = prompt("Edit your message:", currentText);
+            
+            if (newText !== null && newText.trim() !== "" && newText.trim() !== currentText) {
+                fetch('chat_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'edit_message', message_id: messageId, message: newText.trim() })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Message updated');
+                        fetchMessages(activeContactId, false);
+                    } else {
+                        Alert.error('Error editing message.');
+                    }
+                });
+            }
+        }
+
+        function deleteMessage(messageId) {
+            Alert.confirm('Are you sure you want to delete this message?', () => {
+                fetch('chat_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete_message', message_id: messageId })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Message deleted');
+                        fetchMessages(activeContactId, false);
+                    } else {
+                        Alert.error('Error deleting message.');
+                    }
+                });
+            });
+        }
+
+        // Close dropdown menus when clicking anywhere else
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.message-menu').forEach(menu => {
+                menu.style.display = 'none';
+            });
+        });
 
     </script>
 </body>
