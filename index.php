@@ -6,6 +6,6 @@
     <title>Document</title>
 </head>
 <body>
-    <script>window.location.href = "Login/Login.php";</script>
+    <script>window.location.href = "Login/login.php";</script>
 </body>
 </html>
