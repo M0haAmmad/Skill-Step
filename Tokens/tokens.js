@@ -82,7 +82,7 @@ function fakeSubmit(event, type) {
         
     } else if (type === 'exchange') {
         const amount = document.getElementById('exchangeAmount').value;
-        const paypalEmail = document.querySelector('input[type="email"]').value; // Assuming the exchange email input
+        const paypalEmail = document.getElementById('exchangeEmail').value;
         const btn = document.querySelector('.exchange-btn');
         
         btn.disabled = true;

@@ -379,7 +379,7 @@ if (!$has_certificate && $course_progress >= 100) {
             </div>
         </div>
         <!-- Course Completion Modal -->
-        <div id="completionModal" class="completion-modal-overlay">
+        <div id="completionModal" class="completion-modal-overlay" style="display: none;">
             <div class="completion-card">
                 <div class="confetti-container" id="confettiContainer"></div>
                 <div class="trophy-ring">
@@ -403,7 +403,7 @@ if (!$has_certificate && $course_progress >= 100) {
         </div>
 
         <!-- Purchase Modal -->
-        <div id="purchaseModal" class="modal">
+        <div id="purchaseModal" class="modal" style="display: none;">
             <div class="modal-content glass-card">
                 <div class="modal-header">
                     <h3 class="modal-title">Confirm payment to the mentor</h3>
@@ -443,11 +443,18 @@ if (!$has_certificate && $course_progress >= 100) {
                 } else {
                     messageEl.innerHTML = `Do you want to buy this course for <strong>${coursePrice} tokens</strong>?<br>The amount will be transferred directly to the mentor to support their content. <strong>This transaction is final and non-refundable.</strong>`;
                 }
-                document.getElementById('purchaseModal').classList.add('open');
+                const modal = document.getElementById('purchaseModal');
+                modal.style.display = 'flex';
+                modal.offsetHeight; // Force reflow
+                modal.classList.add('open');
             }
 
             function hidePurchaseModal() {
-                document.getElementById('purchaseModal').classList.remove('open');
+                const modal = document.getElementById('purchaseModal');
+                modal.classList.remove('open');
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
             }
 
             function showToast(message, type = 'success') {
@@ -641,15 +648,21 @@ if (!$has_certificate && $course_progress >= 100) {
 
             // DevTools detection removed to prevent false positive alerts
 
-            function showCompletionModal() {
-                const modal = document.getElementById('completionModal');
-                modal.classList.add('open');
-                spawnConfetti();
-            }
+             function showCompletionModal() {
+                 const modal = document.getElementById('completionModal');
+                 modal.style.display = 'flex';
+                 modal.offsetHeight; // Force reflow
+                 modal.classList.add('open');
+                 spawnConfetti();
+             }
 
-            function closeCompletionModal() {
-                document.getElementById('completionModal').classList.remove('open');
-            }
+             function closeCompletionModal() {
+                 const modal = document.getElementById('completionModal');
+                 modal.classList.remove('open');
+                 setTimeout(() => {
+                     modal.style.display = 'none';
+                 }, 400);
+             }
 
             function spawnConfetti() {
                 const container = document.getElementById('confettiContainer');

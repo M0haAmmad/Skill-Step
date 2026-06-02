@@ -66,7 +66,7 @@ try {
     $new_balance = $user_data['token_balance'] - $amount_tokens;
 
     // 2. Insert cashout request for admin dashboard
-    $insert_request = "INSERT INTO cash_out_requests (user_id, amount_tokens, usd_equivalent, platform_commission, net_payout, method, account_identifier, status, created_at) VALUES (?, ?, ?, ?, ?, 'paypal', ?, 'pending', NOW())";
+    $insert_request = "INSERT INTO cash_out_requests (user_id, amount_tokens, usd_equivalent, platform_commission, net_payout, method, account_identifier, status, requested_at) VALUES (?, ?, ?, ?, ?, 'paypal', ?, 'pending', NOW())";
     $stmt_request = mysqli_prepare($conn, $insert_request);
     mysqli_stmt_bind_param($stmt_request, "iiddds", $user_id, $amount_tokens, $usd_equivalent, $commission, $net_payout, $paypal_email);
     mysqli_stmt_execute($stmt_request);

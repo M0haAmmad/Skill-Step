@@ -163,7 +163,7 @@ $db_lvl = $row['current_Lvl'];
                     </div>
                     <div class="form-group">
                         <label>PayPal Account (Email):</label>
-                        <input type="email" placeholder="example@paypal.com"  required>
+                        <input type="email" id="exchangeEmail" placeholder="example@paypal.com"  required>
                     </div>
                     <button type="submit" class="btn-action exchange-btn">
                         Confirm Cashout
